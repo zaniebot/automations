@@ -17,11 +17,11 @@ jobs:
   fetch:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Restore issue cache
         id: restore
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: .cache/github-issues
           key: github-issues-v1-${{ github.run_id }}
@@ -37,7 +37,7 @@ jobs:
           --cache-dir .cache/github-issues
 
       - name: Save issue cache
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: .cache/github-issues
           key: github-issues-v1-${{ github.run_id }}
