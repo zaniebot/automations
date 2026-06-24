@@ -1,0 +1,54 @@
+name: Cache issue deltas
+
+on:
+  schedule:
+    - cron: "7,22,37,52 * * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: github-issue-delta-cache
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Restore issue cache
+        id: restore
+        uses: actions/cache/restore@v4
+        with:
+          path: .cache/github-issues
+          key: github-issues-v1-${{ github.run_id }}
+          restore-keys: |
+            github-issues-v1-
+
+      - name: Fetch astral-sh/uv issue delta
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: >-
+          python3 scripts/fetch_issues.py
+          --repository astral-sh/uv
+          --cache-dir .cache/github-issues
+
+      - name: Save issue cache
+        uses: actions/cache/save@v4
+        with:
+          path: .cache/github-issues
+          key: github-issues-v1-${{ github.run_id }}
+
+      - name: Remove superseded cache
+        if: steps.restore.outputs.cache-matched-key != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OLD_CACHE_KEY: ${{ steps.restore.outputs.cache-matched-key }}
+          NEW_CACHE_KEY: github-issues-v1-${{ github.run_id }}
+        run: |
+          if [[ "$OLD_CACHE_KEY" != "$NEW_CACHE_KEY" ]]; then
+            gh cache delete "$OLD_CACHE_KEY" --confirm || true
+          fi
