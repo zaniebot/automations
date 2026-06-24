@@ -50,5 +50,5 @@ jobs:
           NEW_CACHE_KEY: github-issues-v1-${{ github.run_id }}
         run: |
           if [[ "$OLD_CACHE_KEY" != "$NEW_CACHE_KEY" ]]; then
-            gh cache delete "$OLD_CACHE_KEY" --confirm || true
+            gh cache delete "$OLD_CACHE_KEY"
           fi
