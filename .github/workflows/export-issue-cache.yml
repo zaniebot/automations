@@ -1,0 +1,45 @@
+name: Export issue cache
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Restore latest issue cache
+        id: restore
+        uses: actions/cache/restore@v6
+        with:
+          path: .cache/github-issues
+          key: github-issues-export-${{ github.run_id }}
+          restore-keys: |
+            github-issues-v1-
+
+      - name: Require an existing cache
+        if: steps.restore.outputs.cache-matched-key == ''
+        run: |
+          echo "No github-issues-v1 cache entry was found" >&2
+          exit 1
+
+      - name: Create export archive
+        env:
+          CACHE_KEY: ${{ steps.restore.outputs.cache-matched-key }}
+        run: |
+          tar -C .cache -czf github-issues-cache.tar.gz github-issues
+          sha256sum github-issues-cache.tar.gz > github-issues-cache.tar.gz.sha256
+          printf '%s\n' "$CACHE_KEY" > github-issues-cache.key
+
+      - name: Upload export artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: github-issues-cache-${{ github.run_id }}
+          path: |
+            github-issues-cache.tar.gz
+            github-issues-cache.tar.gz.sha256
+            github-issues-cache.key
+          if-no-files-found: error
+          retention-days: 7

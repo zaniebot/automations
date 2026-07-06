@@ -41,3 +41,14 @@ GITHUB_TOKEN=... python3 scripts/fetch_issues.py --repository astral-sh/uv
 GitHub Actions caches are an optimization mechanism, not durable storage. They
 can be evicted by GitHub, in which case the next run starts a fresh seven-day
 seed window.
+
+### Exporting the cache
+
+Run the manual **Export issue cache** workflow to restore the latest cache and
+publish a downloadable artifact for seven days. The artifact contains:
+
+- `github-issues-cache.tar.gz`
+- `github-issues-cache.tar.gz.sha256`
+- `github-issues-cache.key`, identifying the source cache entry
+
+The export workflow only reads the cache; it does not replace or delete it.
